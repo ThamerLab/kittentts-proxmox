@@ -1,0 +1,22 @@
+name: Static checks
+on: [push, pull_request]
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Bash syntax
+        run: bash -n install.sh setup-inside.sh
+      - name: Check Python syntax
+        run: python -m py_compile app/main.py
+      - name: Check SVG and HTML
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as E
+          from html.parser import HTMLParser
+          for path in ('assets/banner.svg', 'assets/architecture.svg'):
+              E.parse(path)
+          h=HTMLParser()
+          h.feed(open('app/index.html',encoding='utf-8').read())
+          print('Static checks passed')
+          PY
