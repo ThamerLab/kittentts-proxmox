@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KittenTTS Home</title><style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 0,#193b69,#09111f 60%);color:#f0f5ff}
+main{max-width:800px;margin:36px auto;padding:36px;background:#132139;border:1px solid #344767;border-radius:24px;box-shadow:0 20px 70px #0004}
+h1{font-size:2.8rem;margin:6px 0}h1 span{color:#60a5fa}p,footer{color:#a8bbd3}small{color:#6ee7b7;font-weight:700;letter-spacing:.12em}
+label{display:block;margin:19px 0 7px;font-weight:600}input,select,textarea{display:block;width:100%;font:inherit;color:white;background:#0b1527;border:1px solid #425777;border-radius:10px;padding:12px}
+textarea{min-height:155px;resize:vertical}button,a.download{display:inline-block;font:inherit;border:0;border-radius:9px;background:#3b82f6;color:white;padding:12px 18px;margin:16px 10px 0 0;text-decoration:none;cursor:pointer}button:disabled{opacity:.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}audio{width:100%;margin-top:17px}#status{margin-top:18px;min-height:25px;white-space:pre-wrap;color:#86efac}footer{font-size:.8rem;margin-top:26px}
+@media(max-width:600px){main{margin:14px;padding:22px}.grid{grid-template-columns:1fr}}
+</style></head><body><main><small>SELF-HOSTED VOICE AI · PROXMOX LXC</small><h1>🐱 KittenTTS <span>Home</span></h1><p>Turn text into WAV speech on your own CPU-powered server.</p>
+<label for="key">API key</label><input id="key" type="password" autocomplete="off" placeholder="Paste the key from your Proxmox Console">
+<label for="txt">Text</label><textarea id="txt">Hello from my own self-hosted voice server.</textarea>
+<div class="grid"><div><label for="voice">Voice</label><select id="voice"><option>Luna</option><option>Bruno</option><option>Arabic</option></select></div><div><label for="preset">Style</label><select id="preset"><option value="">Default</option><option>balanced</option><option>stable</option><option>expressive</option></select></div></div>
+<button id="load">Load voices</button><button id="run">Generate speech</button><div id="status" role="status"></div><audio id="player" controls hidden></audio><a id="download" class="download" download="speech.wav" hidden>Download WAV</a>
+<footer>Model weights download on first generation. Never expose HTTP port 8787 to the internet; use an authenticated HTTPS proxy or VPN.</footer></main><script>
+const $=id=>document.getElementById(id);let last=null;
+const hdr=()=>({'X-API-Key':$('key').value});
+$('load').onclick=async()=>{$('load').disabled=true;$('status').textContent='Loading voices and model…';try{const r=await fetch('/api/voices',{headers:hdr()});const d=await r.json();if(!r.ok)throw Error(d.detail||r.status);$('voice').replaceChildren(...d.voices.map(n=>{let o=document.createElement('option');o.value=n;o.textContent=n;return o}));$('status').textContent=d.voices.length+' voices ready';}catch(e){$('status').textContent='Error: '+e.message}finally{$('load').disabled=false}};
+$('run').onclick=async()=>{if(!$('txt').value.trim())return $('status').textContent='Enter text first';$('run').disabled=true;$('status').textContent='Generating speech…';$('download').hidden=true;$('player').hidden=true;try{const r=await fetch('/api/tts',{method:'POST',headers:{...hdr(),'Content-Type':'application/json'},body:JSON.stringify({text:$('txt').value,voice:$('voice').value,preset:$('preset').value||null})});if(!r.ok){let d=await r.json().catch(()=>({}));throw Error(d.detail||r.status)}const b=await r.blob();if(last)URL.revokeObjectURL(last);last=URL.createObjectURL(b);$('player').src=last;$('player').hidden=false;$('download').href=last;$('download').hidden=false;$('status').textContent='Speech ready!';}catch(e){$('status').textContent='Error: '+e.message}finally{$('run').disabled=false}};
+</script></body></html>
