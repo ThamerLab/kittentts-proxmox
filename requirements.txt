@@ -1,0 +1,5 @@
+kittenml
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+soundfile>=0.12,<1
+numpy>=1.26,<3
