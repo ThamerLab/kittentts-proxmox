@@ -15,7 +15,7 @@ echo "KittenTTS Proxmox LXC installer (community beta)"
 read -r -p "Advanced settings? [y/N] " advanced
 if [[ "$advanced" == y || "$advanced" == Y ]]; then
  for field in ctid hostname cores memory disk root_storage tpl_storage bridge; do
-  current="$(eval "printf '%s' '\$$field'")"
+  current="${!field}"
   read -r -p "$field [$current]: " value
   if [[ -n "$value" ]]; then printf -v "$field" '%s' "$value"; fi
  done
